@@ -1,0 +1,13 @@
+# Terraform
+.terraform/
+terraform.tfstate
+terraform.tfstate.*
+*.tfplan
+tfplan
+
+# Arquivos gerados
+cluster_outputs.json
+
+# Firebase / credenciais
+serviceAccountKey.json
+terraform/scripts/k8s/backend/secrets.yaml
