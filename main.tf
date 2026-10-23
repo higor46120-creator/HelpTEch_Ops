@@ -58,57 +58,34 @@ resource "null_resource" "apply_k8s_backend" {
   }
 }
 
-resource "null_resource" "swagger_port_forward" {
+
+# Exposição do Serviço e Redirecionamento de Porta (Port-Forward)
+
+resource "null_resource" "expose_service" {
+  depends_on = [null_resource.apply_k8s_backend]
+
   triggers = {
-    always_run = timestamp()
+    deployment_hash = filemd5("${path.module}/terraform/scripts/k8s/backend/deployment.yaml")
   }
 
-  depends_on = [
-    null_resource.apply_k8s_backend
-  ]
-
+  # Executado no 'terraform apply'
   provisioner "local-exec" {
-    command = <<-EOT
-      $existing = Get-NetTCPConnection -LocalPort 8080 -State Listen -ErrorAction SilentlyContinue
+    command     = <<EOT
+      echo "⏳ Aguardando o Deployment e os Pods ficarem 100% Ready..."
+      kubectl rollout status deployment/backend-deployment --timeout=180s
+      kubectl wait --for=condition=Ready pod -l app=backend --timeout=180s
 
-      if (-not $existing) {
-        Start-Process `
-          -FilePath "minikube" `
-          -ArgumentList "-p","${minikube_cluster.custom.cluster_name}","kubectl","--","port-forward","service/backend-service","8080:8080","--namespace=default" `
-          -WindowStyle Hidden
-
-        Start-Sleep -Seconds 5
-      }
-
-      try {
-        $response = Invoke-WebRequest `
-          -Uri "http://127.0.0.1:8080/actuator/health" `
-          -UseBasicParsing `
-          -TimeoutSec 10
-
-        if ($response.StatusCode -ne 200) {
-          throw "Backend não respondeu HTTP 200."
-        }
-
-        Write-Host ""
-        Write-Host "===================================="
-        Write-Host " Swagger disponível!"
-        Write-Host " http://127.0.0.1:8080/swagger-ui/index.html"
-        Write-Host "===================================="
-
-        Start-Process "http://127.0.0.1:8080/swagger-ui/index.html"
-      }
-      catch {
-        Write-Error "Não foi possível acessar o backend pela porta 8080."
-        exit 1
-      }
+      echo "🚀 Pods prontos! Iniciando o port-forward em background..."
+      nohup kubectl port-forward service/backend-service --address 0.0.0.0 8080:8080 > /dev/null 2>&1 &
     EOT
+    interpreter = ["bash", "-c"]
+  }
 
-    interpreter = [
-      "PowerShell",
-      "-NoProfile",
-      "-Command"
-    ]
+  # Executado no 'terraform destroy'
+  provisioner "local-exec" {
+    when        = destroy
+    command     = "pkill -f 'kubectl port-forward service/backend-service --address 0.0.0.0 8080:8080' || true"
+    interpreter = ["bash", "-c"]
   }
 }
 
