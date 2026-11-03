@@ -94,6 +94,26 @@ if [ ! -f "$SERVICE_ACCOUNT_FILE" ]; then
 fi
 
 # --------------------------------------------------
+# BUILD E CARREGAMENTO DO BACKEND
+# --------------------------------------------------
+
+BACKEND_SOURCE_DIR="$HOME/projeto-backend"
+BACKEND_IMAGE="helptech-backend:firebase-fix"
+
+if [ ! -f "$BACKEND_SOURCE_DIR/Dockerfile" ]; then
+    echo "ERRO: Dockerfile do backend não encontrado em $BACKEND_SOURCE_DIR"
+    exit 1
+fi
+
+echo
+echo "Construindo imagem Docker do backend..."
+docker build -t "$BACKEND_IMAGE" "$BACKEND_SOURCE_DIR"
+
+echo
+echo "Carregando imagem do backend no Minikube..."
+minikube -p "$CLUSTER_NAME" image load --overwrite=true "$BACKEND_IMAGE"
+
+echo "Imagem do backend carregada com sucesso."# --------------------------------------------------
 # OBTÉM O IP DO HOST
 # Compatível com Windows / Git Bash
 # --------------------------------------------------
@@ -155,6 +175,8 @@ sed "s|\${HOST_IP}|${HOST_IP}|g" "$DEPLOYMENT_FILE" | k apply -f -
 
 echo
 echo "[4/4] Aguardando rollout do backend..."
+
+k rollout restart deployment/backend-deployment --namespace="$NAMESPACE"
 
 k rollout status deployment/backend-deployment \
     --namespace="$NAMESPACE" \

@@ -37,8 +37,8 @@ spec:
 
       containers:
         - name: backend-container
-          image: higorsantanafiec/helptech-backend:latest
-          imagePullPolicy: Always
+          image: helptech-backend:firebase-fix
+          imagePullPolicy: IfNotPresent
 
           ports:
             - containerPort: 8080
@@ -75,7 +75,21 @@ spec:
                 secretKeyRef:
                   name: firebase-secret
                   key: FIREBASE_CREDENTIALS_JSON
+            - name: GOOGLE_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: helptech-google-original
+                  key: GOOGLE_CLIENT_ID
 
+            - name: GOOGLE_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: helptech-google-original
+                  key: GOOGLE_CLIENT_SECRET
+            - name: APP_OAUTH2_REDIRECT_URI
+              value: "http://localhost:8081/oauth2/redirect"
+            - name: SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_REDIRECT_URI
+              value: "http://localhost:8080/login/oauth2/code/google"
           volumeMounts:
             - name: firebase-key-volume
               mountPath: /tmp/serviceAccountKey.json
