@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+data:
+  APP_ENV: "production"
+  BACKEND_URL: "http://backend-service:8080"
+  # Antes: host.minikube.internal:3310 — agora o endpoint do RDS
+  DB_HOST: "${DB_HOST}"
+  DB_PORT: "${DB_PORT}"
+  DB_NAME: "${DB_NAME}"
+  DB_PROJECT_NAME: "HelpTech"
+  SPRING_DATASOURCE_URL: "jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?sslMode=REQUIRED&serverTimezone=UTC"
+  SPRING_JPA_HIBERNATE_DDL_AUTO: "validate"
+  FRONTEND_OAUTH2_REDIRECT_URI: "${FRONTEND_OAUTH2_REDIRECT_URI}"

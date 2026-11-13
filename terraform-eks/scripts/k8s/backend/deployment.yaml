@@ -1,0 +1,112 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-deployment
+  labels:
+    app: backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+      annotations:
+        # Muda quando ConfigMap/Secret mudam -> força o restart dos pods
+        checksum/config: "${CONFIG_HASH}"
+    spec:
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app: backend
+      containers:
+        - name: backend-container
+          image: ${BACKEND_IMAGE}
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: app-config
+            - secretRef:
+                name: firebase-secret
+            # Google OAuth / JWT — só existe se informado no terraform.tfvars
+            - secretRef:
+                name: backend-optional-secret
+                optional: true
+          volumeMounts:
+            - name: firebase-file
+              mountPath: /tmp/serviceAccountKey.json
+              subPath: serviceAccountKey.json
+              readOnly: true
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          # Probes TCP na 8080: na imagem atual o Actuator fica na 8080 atrás do
+          # Spring Security (HTTP 401), e a porta 9090 de management não existe.
+          # O Tomcat só abre a 8080 depois que a aplicação subiu e conectou no banco.
+          # Spring Boot demora para subir: até 5 min de tolerância
+          startupProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 10
+            failureThreshold: 30
+          readinessProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 20
+            failureThreshold: 3
+      volumes:
+        - name: firebase-file
+          secret:
+            secretName: firebase-secret
+            items:
+              - key: "FIREBASE_CREDENTIALS_JSON"
+                path: serviceAccountKey.json
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+spec:
+  type: ClusterIP # acesso interno pelo Nginx
+  selector:
+    app: backend
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: backend-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: backend-deployment
+  minReplicas: 2
+  maxReplicas: 5
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70

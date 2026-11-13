@@ -1,0 +1,23 @@
+# Terraform state, caches, plans and sensitive data
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.tfvars
+*.tfvars.json
+tfplan.out
+crash.log
+crash.*.log
+.terraform.tfstate.lock.info
+.terraform.d/
+.kube/
+.deploy-secrets.env
+serviceAccountKey.json
+*.pem
+*.key
+*.p12
+*.pfx
+.env
+.env.*
+!.env.example
+.deploy-oauth.env
