@@ -17,7 +17,7 @@ resource "null_resource" "apply_k8s_frontend" {
       echo " HelpTech - Frontend"
       echo "===================================="
 
-      FRONTEND_DIR="$HOME/Desktop/projeto-frontend"
+      FRONTEND_DIR="$HOME/Desktop/TCC/projeto-frontend"
 
       echo "Construindo imagem Docker..."
       docker build -t helptech-frontend:teste "$FRONTEND_DIR"

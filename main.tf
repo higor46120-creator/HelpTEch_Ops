@@ -82,7 +82,6 @@ resource "null_resource" "expose_service" {
       echo "Aguardando o Deployment e os Pods ficarem Ready..."
 
       kubectl rollout status deployment/backend-deployment --timeout=180s
-      kubectl wait --for=condition=Ready pod -l app=backend --timeout=180s
 
       echo "Verificando port-forward do backend..."
 
@@ -120,14 +119,6 @@ resource "null_resource" "expose_service" {
     interpreter = ["bash", "-c"]
   }
 
-  # Limpeza do encaminhamento antigo durante o destroy
-  provisioner "local-exec" {
-    when = destroy
-
-    command = "pkill -f 'kubectl port-forward service/backend-service --address 0.0.0.0 8080:8080' || true"
-
-    interpreter = ["bash", "-c"]
-  }
 }
 
 # --------------------------------------------------

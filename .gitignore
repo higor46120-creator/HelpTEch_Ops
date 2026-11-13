@@ -10,4 +10,19 @@ cluster_outputs.json
 
 # Firebase / credenciais
 serviceAccountKey.json
-terraform/scripts/k8s/backend/secrets.yaml
+terraform/scripts/k8s/backend/secrets.yamltfplan.out
+*.tfstate
+*.tfstate.*
+.kube/
+*.tfvars
+.deploy-*.env
+
+# Arquivos privados do HelpTech
+/tfplan.out
+/main.tf.backup
+/terraform/scripts/k8s/backend/secrets.yaml
+**/*.tfplan
+**/*.tfstate
+**/*.tfstate.*
+**/.terraform/
+**/.kube/

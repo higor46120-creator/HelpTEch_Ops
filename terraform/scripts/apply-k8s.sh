@@ -97,8 +97,8 @@ fi
 # BUILD E CARREGAMENTO DO BACKEND
 # --------------------------------------------------
 
-BACKEND_SOURCE_DIR="$HOME/projeto-backend"
-BACKEND_IMAGE="helptech-backend:firebase-fix"
+BACKEND_SOURCE_DIR="$HOME/Desktop/TCC/projeto-backend"
+BACKEND_IMAGE="helptech-backend:perfil-cors-fix"
 
 if [ ! -f "$BACKEND_SOURCE_DIR/Dockerfile" ]; then
     echo "ERRO: Dockerfile do backend não encontrado em $BACKEND_SOURCE_DIR"
@@ -179,20 +179,6 @@ echo "[4/4] Aguardando rollout do backend..."
 k rollout restart deployment/backend-deployment --namespace="$NAMESPACE"
 
 k rollout status deployment/backend-deployment \
-    --namespace="$NAMESPACE" \
-    --timeout=180s
-
-# --------------------------------------------------
-# AGUARDA O POD FICAR READY
-# --------------------------------------------------
-
-echo
-echo "Aguardando pod do backend ficar Ready..."
-
-k wait \
-    --for=condition=Ready \
-    pod \
-    -l app=backend \
     --namespace="$NAMESPACE" \
     --timeout=180s
 
