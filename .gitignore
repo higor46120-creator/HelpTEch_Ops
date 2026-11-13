@@ -26,3 +26,8 @@ terraform/scripts/k8s/backend/secrets.yamltfplan.out
 **/*.tfstate.*
 **/.terraform/
 **/.kube/
+
+# Arquivos locais de segurança
+terraform-eks/scripts/k8s/backend/secret.yaml
+terraform/scripts/*.backup
+terraform/scripts/k8s/backend/*.backup
