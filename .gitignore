@@ -1,13 +1,18 @@
 # Terraform
-.terraform/
-terraform.tfstate
-terraform.tfstate.*
+**/.terraform/
+**/terraform.tfstate
+**/terraform.tfstate.*
 *.tfplan
-tfplan
+**/tfplan
+**/tfplan.out
+*.tfvars
+!*.tfvars.example
 
 # Arquivos gerados
-cluster_outputs.json
+**/cluster_outputs.json
+.kube/
+.deploy-secrets.env
 
 # Firebase / credenciais
 serviceAccountKey.json
-terraform/scripts/k8s/backend/secrets.yaml
+**/scripts/k8s/backend/secrets.yaml
