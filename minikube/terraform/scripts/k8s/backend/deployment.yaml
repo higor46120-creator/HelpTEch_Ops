@@ -37,7 +37,7 @@ spec:
 
       containers:
         - name: backend-container
-          image: helptech-backend:perfil-cors-fix
+          image: helptech-backend:latest
           imagePullPolicy: IfNotPresent
 
           ports:

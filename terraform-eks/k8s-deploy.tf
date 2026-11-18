@@ -14,8 +14,8 @@ locals {
   }
 
   firebase_file_hash = (
-    fileexists("${path.module}/${var.firebase_credentials_file}")
-    ? filemd5("${path.module}/${var.firebase_credentials_file}")
+    fileexists(var.firebase_credentials_file)
+    ? filemd5(var.firebase_credentials_file)
     : "arquivo-ausente"
   )
 }
@@ -32,6 +32,7 @@ resource "local_sensitive_file" "deploy_secrets" {
     JWT_SECRET_B64=${var.jwt_secret != "" ? base64encode(var.jwt_secret) : ""}
   EOT
 }
+
 
 # 2. Namespace — no destroy remove tudo (inclusive os Load Balancers da AWS)
 resource "null_resource" "k8s_namespace" {
@@ -68,23 +69,30 @@ resource "null_resource" "k8s_namespace" {
   }
 }
 
-# 3. Frontend (vem primeiro: o backend usa a URL dele no redirect do OAuth2)
+# 3. Frontend
 resource "null_resource" "k8s_frontend_deploy" {
   triggers = {
     common_script   = filemd5("${path.module}/scripts/common.sh")
     deploy_script   = filemd5("${path.module}/scripts/deploy-frontend.sh")
     manifest        = filemd5("${path.module}/scripts/k8s/frontend/deployment.yaml")
     image           = var.frontend_image
-    service_type    = var.enable_https ? "ClusterIP" : "LoadBalancer"
+    node_port       = var.frontend_node_port
+    public_url      = local.frontend_public_url
     namespace_reset = null_resource.k8s_namespace.id
   }
+
+  depends_on = [
+    aws_apigatewayv2_route.frontend_helptec,
+    aws_apigatewayv2_route.frontend_proxy,
+  ]
 
   provisioner "local-exec" {
     interpreter = [var.bash_path, "-c"]
     working_dir = path.module
     environment = merge(local.k8s_env, {
-      FRONTEND_IMAGE        = var.frontend_image
-      FRONTEND_SERVICE_TYPE = var.enable_https ? "ClusterIP" : "LoadBalancer"
+      FRONTEND_IMAGE      = var.frontend_image
+      FRONTEND_NODE_PORT  = tostring(var.frontend_node_port)
+      FRONTEND_PUBLIC_URL = local.frontend_public_url
     })
     command = "./scripts/deploy-frontend.sh"
   }
@@ -102,7 +110,9 @@ resource "null_resource" "k8s_backend_deploy" {
     db_host         = aws_db_instance.mysql.address
     secrets_hash    = local_sensitive_file.deploy_secrets.content_sha256
     firebase_hash   = local.firebase_file_hash
-    oauth2_redirect = var.frontend_oauth2_redirect_uri
+    oauth2_redirect = local.frontend_oauth2_redirect_uri
+    node_port       = var.backend_node_port
+    api_gateway_url = local.backend_public_url
     namespace_reset = null_resource.k8s_namespace.id
   }
 
@@ -111,6 +121,8 @@ resource "null_resource" "k8s_backend_deploy" {
     helm_release.metrics_server,
     aws_vpc_security_group_ingress_rule.rds_from_nodes,
     aws_vpc_security_group_ingress_rule.rds_from_cluster,
+    aws_apigatewayv2_route.backend_helptec,
+    aws_apigatewayv2_route.backend_proxy,
   ]
 
   provisioner "local-exec" {
@@ -123,7 +135,10 @@ resource "null_resource" "k8s_backend_deploy" {
       DB_NAME                      = var.db_name
       SECRETS_FILE                 = basename(local_sensitive_file.deploy_secrets.filename)
       FIREBASE_CREDENTIALS_FILE    = var.firebase_credentials_file
-      FRONTEND_OAUTH2_REDIRECT_URI = var.frontend_oauth2_redirect_uri
+      FRONTEND_OAUTH2_REDIRECT_URI = local.frontend_oauth2_redirect_uri
+      BACKEND_NODE_PORT            = tostring(var.backend_node_port)
+      API_GATEWAY_URL              = local.backend_public_url
+      MONGODB_URI                  = var.mongodb_uri
     })
     command = "./scripts/deploy-backend.sh"
   }

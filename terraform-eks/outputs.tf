@@ -18,7 +18,7 @@ output "cluster_ca_certificate" {
 }
 
 output "kubeconfig_command" {
-  description = "Configura o kubectl local (o apply também gera terraform-eks/.kube/config)"
+  description = "Configura o kubectl local (o apply também gera .kube/config nesta pasta)"
   value       = "aws eks update-kubeconfig --region ${var.aws_region} --name ${module.eks.cluster_name}"
 }
 
@@ -28,6 +28,16 @@ output "kubeconfig_command" {
 output "app_urls_command" {
   description = "Mostra os Load Balancers (EXTERNAL-IP) do backend e do frontend"
   value       = "kubectl --kubeconfig .kube/config -n ${var.namespace} get svc"
+}
+
+output "frontend_url" {
+  description = "URL pública do frontend (API Gateway)"
+  value       = local.frontend_public_url
+}
+
+output "backend_api_url" {
+  description = "URL pública do backend (API Gateway). Use como VITE_API_URL no frontend"
+  value       = local.backend_public_url
 }
 
 # --------------------------------------------------

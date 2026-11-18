@@ -27,7 +27,7 @@ terraform {
   # Opcional: estado remoto no S3 (recomendado se mais de uma pessoa for rodar).
   # Crie o bucket antes e descomente:
   # backend "s3" {
-  #   bucket       = "helptech-terraform-state"
+  #   bucket       = "helptec-terraform-state"
   #   key          = "eks/terraform.tfstate"
   #   region       = "us-east-1"
   #   use_lockfile = true
@@ -61,6 +61,7 @@ provider "helm" {
 
 locals {
   tags = {
+    # Mantido igual ao ambiente já criado (mudar a tag recria os nós do EKS)
     Project     = "HelpTech"
     Environment = var.environment
     ManagedBy   = "terraform"

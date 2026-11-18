@@ -67,6 +67,12 @@ variable "node_max_size" {
   default     = 3
 }
 
+variable "eks_api_allowed_cidrs" {
+  type        = list(string)
+  description = "IPs (CIDR) autorizados a acessar a API pública do EKS (kubectl/Terraform)"
+  default     = ["177.36.141.138/32"]
+}
+
 # --------------------------------------------------
 # BANCO DE DADOS (RDS MySQL — substitui host.minikube.internal:3310)
 # --------------------------------------------------
@@ -121,39 +127,67 @@ variable "namespace" {
 variable "backend_image" {
   type        = string
   description = "Imagem do backend"
-  default     = "SEU_USUARIO_DOCKERHUB/helptech-backend:v1"
-  validation {
-    condition     = !startswith(var.backend_image, "SEU_USUARIO_DOCKERHUB/")
-    error_message = "Defina uma imagem Docker real e publicada para backend_image no terraform.tfvars."
-  }
+  default     = "higorsantanafiec/helptech-backend:latest"
 }
 
 variable "frontend_image" {
   type        = string
   description = "Imagem do frontend (precisa ser buildada com VITE_API_URL apontando para o backend na AWS)"
-  default     = "SEU_USUARIO_DOCKERHUB/helptech-frontend:v1"
-  validation {
-    condition     = !startswith(var.frontend_image, "SEU_USUARIO_DOCKERHUB/")
-    error_message = "Defina uma imagem Docker real e publicada para frontend_image no terraform.tfvars."
-  }
+  default     = "higorsantanafiec/helptech-frontend:latest"
+}
+
+variable "api_gateway_id" {
+  type        = string
+  description = "ID do HTTP API do API Gateway (já existente) que fica na frente do backend"
+  default     = "o3l1ibqnmb"
+}
+
+variable "api_gateway_helptec_route_id" {
+  type        = string
+  description = "ID da rota \"ANY /helptec\" já criada no API Gateway (importada pelo Terraform). Vazio = o Terraform cria a rota"
+  default     = ""
+}
+
+variable "frontend_api_gateway_id" {
+  type        = string
+  description = "ID do HTTP API do API Gateway (já existente) que fica na frente do frontend"
+  default     = "l7qnejkr6i"
+}
+
+variable "frontend_api_gateway_helptec_route_id" {
+  type        = string
+  description = "ID da rota \"ANY /helptec\" já criada no API Gateway do frontend (importada pelo Terraform). Vazio = o Terraform cria a rota"
+  default     = ""
+}
+
+variable "frontend_node_port" {
+  type        = number
+  description = "NodePort fixo do frontend-service (faixa 30000-32767)"
+  default     = 30880
+}
+
+variable "backend_node_port" {
+  type        = number
+  description = "NodePort fixo do backend-service (o NLB interno do API Gateway aponta para ele; faixa 30000-32767)"
+  default     = 30808
 }
 
 variable "firebase_credentials_file" {
   type        = string
-  description = "Caminho do serviceAccountKey.json do Firebase (relativo a esta pasta)"
-  default     = "serviceAccountKey.json"
+  description = "Caminho do serviceAccountKey.json do Firebase já existente (não é copiado nem substituído; aceita caminho absoluto)"
+  default     = "C:/Users/46120/Documents/serviceAccountKey.json"
 }
 
 variable "frontend_oauth2_redirect_uri" {
   type        = string
-  description = "URL de redirect do OAuth2 após login. Vazio = usa a URL do Load Balancer do frontend"
-  default     = ""
+  description = "URL de redirect do OAuth2 após login. Vazio = <URL do frontend no API Gateway>/oauth2/redirect"
+  default     = "https://l7qnejkr6i.execute-api.us-east-1.amazonaws.com/helptec/auth2/redirect"
 }
 
 variable "google_client_id" {
   type        = string
   description = "Client ID do OAuth2 Google (opcional)"
-  default     = ""
+  default     = "766257049899-aot666ceg3076370g72t3tsfemha06gb.apps.googleusercontent.com"
   sensitive   = true
 }
 
@@ -167,6 +201,13 @@ variable "google_client_secret" {
 variable "jwt_secret" {
   type        = string
   description = "Segredo JWT do backend (opcional; vazio = usa o default da aplicação)"
+  default     = ""
+  sensitive   = true
+}
+
+variable "mongodb_uri" {
+  type        = string
+  description = "uri do mongo"
   default     = ""
   sensitive   = true
 }

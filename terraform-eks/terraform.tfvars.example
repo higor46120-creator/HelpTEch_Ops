@@ -1,26 +1,26 @@
-# Copie para terraform.tfvars (arquivo privado, nunca versionar).
-# ATENCAO: terraform plan/apply podem criar recursos AWS cobrados.
-aws_region = "us-east-1"
-cluster_name = "helptech-eks"
-namespace = "helptech"
+# Copie para terraform.tfvars e ajuste. O terraform.tfvars é ignorado pelo git.
 
-db_name = "helptec"
+aws_region   = "us-east-1"
+cluster_name = "helptech-eks"
+namespace    = "helptech"
+
+db_name     = "helptec"
 db_username = "helptech"
 
 node_instance_types = ["t3.medium"]
-node_desired_size = 2
+node_desired_size   = 2
 
-# Publicar imagens versionadas no seu registro Docker antes do apply.
-backend_image = "SEU_USUARIO_DOCKERHUB/helptech-backend:v1"
-frontend_image = "SEU_USUARIO_DOCKERHUB/helptech-frontend:v1"
+backend_image  = "higorsantanafiec/helptech-backend:aws-v1"
+frontend_image = "higorsantanafiec/helptech-frontend:aws-v2-nginx"
 
-# Coloque APENAS o arquivo de credenciais do Firebase do HelpTech.
-firebase_credentials_file = "serviceAccountKey.json"
+# serviceAccountKey.json do Firebase já existente (não copie/substitua o arquivo)
+firebase_credentials_file = "C:/Users/46120/Documents/serviceAccountKey.json"
 
-# Use credenciais OAuth do HelpTech; NUNCA as do projeto FiecLab.
-# google_client_id = ""
+# IPs autorizados a acessar a API do EKS
+eks_api_allowed_cidrs = ["SEU_IP/32"]
+
+# Opcionais
+# google_client_id     = ""
 # google_client_secret = ""
-# jwt_secret = ""
-
-# Necessário ajustar para a URL HTTPS pública do frontend após DNS/TLS.
-# frontend_oauth2_redirect_uri = "https://app.seu-dominio.com/oauth2/redirect"
+# jwt_secret           = ""
+# frontend_oauth2_redirect_uri = "http://<url-do-frontend>/oauth2/redirect"

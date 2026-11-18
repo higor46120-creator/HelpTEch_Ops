@@ -9,7 +9,9 @@ data:
   DB_HOST: "${DB_HOST}"
   DB_PORT: "${DB_PORT}"
   DB_NAME: "${DB_NAME}"
-  DB_PROJECT_NAME: "HelpTech"
-  SPRING_DATASOURCE_URL: "jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?sslMode=REQUIRED&serverTimezone=UTC"
-  SPRING_JPA_HIBERNATE_DDL_AUTO: "validate"
   FRONTEND_OAUTH2_REDIRECT_URI: "${FRONTEND_OAUTH2_REDIRECT_URI}"
+  # Atrás do API Gateway (prefixo /helptec, https): o Spring usa os cabeçalhos
+  # enviados pela integração para montar URLs públicas corretas (Swagger etc.)
+  SERVER_FORWARD_HEADERS_STRATEGY: "framework"
+  SERVER_TOMCAT_REMOTEIP_PROTOCOL_HEADER: "X-Helptec-Proto"
+  MONGODB_URI: "${MONGODB_URI}"

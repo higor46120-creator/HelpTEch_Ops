@@ -48,7 +48,7 @@ resource "aws_db_parameter_group" "mysql" {
 
   parameter {
     name  = "require_secure_transport"
-    value = "1"
+    value = "0"
   }
 }
 
@@ -73,7 +73,8 @@ resource "aws_db_instance" "mysql" {
   parameter_group_name   = aws_db_parameter_group.mysql.name
   publicly_accessible    = false
 
-  # Ambiente de TCC: destroy rápido, sem snapshot final
+  # Proteção do banco (mantida do ambiente que já está no ar).
+  # Para um 'terraform destroy', mude deletion_protection para false e aplique antes.
   skip_final_snapshot       = false
   final_snapshot_identifier = "${var.cluster_name}-mysql-final"
   deletion_protection       = true

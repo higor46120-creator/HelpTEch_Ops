@@ -1,33 +1,18 @@
 # Terraform
-.terraform/
-terraform.tfstate
-terraform.tfstate.*
+**/.terraform/
+**/terraform.tfstate
+**/terraform.tfstate.*
 *.tfplan
-tfplan
+**/tfplan
+**/tfplan.out
+*.tfvars
+!*.tfvars.example
 
 # Arquivos gerados
-cluster_outputs.json
+**/cluster_outputs.json
+.kube/
+.deploy-secrets.env
 
 # Firebase / credenciais
 serviceAccountKey.json
-terraform/scripts/k8s/backend/secrets.yamltfplan.out
-*.tfstate
-*.tfstate.*
-.kube/
-*.tfvars
-.deploy-*.env
-
-# Arquivos privados do HelpTech
-/tfplan.out
-/main.tf.backup
-/terraform/scripts/k8s/backend/secrets.yaml
-**/*.tfplan
-**/*.tfstate
-**/*.tfstate.*
-**/.terraform/
-**/.kube/
-
-# Arquivos locais de segurança
-terraform-eks/scripts/k8s/backend/secret.yaml
-terraform/scripts/*.backup
-terraform/scripts/k8s/backend/*.backup
+**/scripts/k8s/backend/secrets.yaml
